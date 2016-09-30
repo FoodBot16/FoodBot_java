@@ -21,7 +21,7 @@ body {
 	padding-top: 60px;
 }
 </style>
-<title>회귀 학습</title>
+<title>회귀 학습 ㅎㅎ</title>
 </head>
 <body>
 	<div class="navbar navbar-inverse navbar-fixed-top">
