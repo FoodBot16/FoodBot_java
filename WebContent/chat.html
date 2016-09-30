@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>TEST Bot</title>
+  <link rel="stylesheet" href="main.css">
+</head>
+<body>
+  <header>
+        <h1>TEST Bot</h1>
+        <nav>
+            <ul>
+                <li><a href="#">검색 필터</a></li>
+                <li><a href="#">로그아웃</a></li>
+            </ul>
+        </nav>
+  </header>
+ <section id="messages-container">
+ 
+ </section>
+ <footer>
+     <form id="message-form" action="#">
+                <input type="text" id="message">
+                <button id="submit">
+                  Send
+                </button>
+        </form>
+ </footer>
+</body>
+<script src="jquery-1.11.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        var top = 0;
+        $sendbtn = $("#submit");
+        $textfield = document.getElementById("message");
+        $messages_container = $("#messages-container");
+        $sendArea = $("#sendarea");
+        $recvArea = $("#recvarea");
+        $bot = $('h1');
+        
+        console.log($textfield);
+        $sendbtn.click(function(){
+            //텍스트 필드에 있는 값을 내 화면에 출력
+            var sendtext = $textfield.value;
+            //채팅창에 입력 안됐을때
+            if(sendtext == '') {
+                console.log("널");
+                return;
+            }
+            //채팅창에 추가
+            createMsgBox().html(sendtext).appendTo($messages_container);
+            $('#message').val('');
+            //그리고 서버로 보냄
+        });
+        
+        $bot.click(function(){
+            createBotBox().html("안녕").appendTo($messages_container);
+        });
+        
+        function createBotBox() {
+            $div = $("<div>", {
+			css: {
+                float:"left",
+                width: "50%",
+                height: "auto",
+                textAlign: "center",
+                borderRadius: "30px",
+                border:"2px solid black",
+				backgroundColor: "yellow",
+                padding:"10px",
+                margin:"10px"
+			},
+		    });
+            return $div
+        }
+        
+        function createMsgBox() {
+            return $("<div>", {
+			css: {
+                float:"right",
+                top: "5px",
+                width: "50%",
+                height: "auto",
+                textAlign: "center",
+                borderRadius: "30px",
+                border:"2px solid black",
+				backgroundColor: "white",
+                padding:"10px",
+                margin:"10px"
+			},
+		    });
+        }
+    });
+</script>
+</html>
