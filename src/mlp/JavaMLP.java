@@ -33,25 +33,30 @@ import java.lang.Math;
 
 public class JavaMLP {
 
-	// »ç¿ëÀÚ°¡ ¼öÁ¤ÇÒ ¼ö ÀÖ´Â ¸Å°³º¯¼ö ¼³Á¤(user defineable variables)
+	// ì‚¬ìš©ìê°€ ìˆ˜ì •í•  ìˆ˜ ìˆëŠ” ë§¤ê°œë³€ìˆ˜ ì„¤ì •(user defineable variables)
 	public static int numEpochs = 500; // Epoch(number of training cycles)
-	public static int numInputs = 3; // ÀÔ·Â ´º·±ÀÇ ¼ö+bias Æ÷ÇÔ(number of inputs - this includes the input bias)
-	public static int numHidden = 4; // È÷µçÃş ´º·±ÀÇ ¼ö (number of hidden units)
-	public static int numPatterns = 4; // ÆĞÅÏ ¼ö(number of training patterns)
+	public static int numInputs = 3; // ì…ë ¥ ë‰´ëŸ°ì˜ ìˆ˜+bias í¬í•¨(number of inputs - this includes the input bias)
+	public static int numHidden = 4; // íˆë“ ì¸µ ë‰´ëŸ°ì˜ ìˆ˜ (number of hidden units)
+	public static int numPatterns = 9; // íŒ¨í„´ ìˆ˜(number of training patterns)
+	public static int numTest = 9;
 	public static double LR_IH = 0.7; // Input-Hidden learning rate
 	public static double LR_HO = 0.07; // Hidden-Output learning rate
 
-	//  º¯¼ö(process variables)
+	//  ë³€ìˆ˜(process variables)
 	public static int patNum;
 	public static double errThisPat;
 	public static double outPred;
+	public static double outValid;
 	public static double RMSerror;
 
 	// training data
 	public static double[][] trainInputs = new double[numPatterns][numInputs];
 	public static double[] trainOutput = new double[numPatterns];
+	
+	// test data
+	public static double[][] testInputs = new double[numTest][numInputs];
 
-	// È÷µçÃş ´º·±ÀÇ Ãâ·Â ¹è¿­(the outputs of the hidden neurons)
+	// íˆë“ ì¸µ ë‰´ëŸ°ì˜ ì¶œë ¥ ë°°ì—´(the outputs of the hidden neurons)
 	public static double[] hiddenVal = new double[numHidden];
 
 	// the weights
@@ -64,33 +69,34 @@ public class JavaMLP {
 
 	public static void main(String[] args) {
 
-		// °¡ÁßÄ¡ ÃÊ±âÈ­(initiate the weights)
+		// ê°€ì¤‘ì¹˜ ì´ˆê¸°í™”(initiate the weights)
 		initWeights();
 
-		// µ¥ÀÌÅÍ ÀÔ·Â(load in the data)
+		// ë°ì´í„° ì…ë ¥(load in the data)
 		initData();
 
-		// ÇĞ½À(train the network)
+		// í•™ìŠµ(train the network)
 		for (int j = 0; j <= numEpochs; j++) {
 
 			for (int i = 0; i < numPatterns; i++) {
 
-				// ¹«ÀÛÀ§·Î µ¥ÀÌÅÍ ¼±ÅÃ(select a pattern at random)
+				// ë¬´ì‘ìœ„ë¡œ ë°ì´í„° ì„ íƒ(select a pattern at random)
 				patNum = (int) ((Math.random() * numPatterns) - 0.001);
 
 				// calculate the current network output
 				// and error for this pattern
-				// ÇĞ½À ÈÄ Ãâ·Â°ú ¿ÀÂ÷ °è»ê
+				// í•™ìŠµ í›„ ì¶œë ¥ê³¼ ì˜¤ì°¨ ê³„ì‚°
 				calcNet();
 
-				// °¡ÁßÄ¡ Á¶Á¤(change network weights)
+				// ê°€ì¤‘ì¹˜ ì¡°ì •(change network weights)
+				// Backpropagation
 				WeightChangesHO();
 				WeightChangesIH();
 			}
 
 			// display the overall network error
 			// after each epoch
-			// Epoch¸¶´Ù ÀüÃ¼ ¿ÀÂ÷ Ãâ·Â
+			// Epochë§ˆë‹¤ ì „ì²´ ì˜¤ì°¨ ì¶œë ¥
 			calcOverallError();
 			System.out.println("epoch = " + j + "  RMS Error = " + RMSerror);
 
@@ -98,7 +104,7 @@ public class JavaMLP {
 
 		// training has finished
 		// display the results
-		// ÇĞ½À Á¾·á ÈÄ °á°ú Ãâ·Â
+		// í•™ìŠµ ì¢…ë£Œ í›„ ê²°ê³¼ ì¶œë ¥
 		displayResults();
 
 	}
@@ -107,11 +113,11 @@ public class JavaMLP {
 	// ********** END OF THE MAIN PROGRAM **************************
 	// =============================================================
 
-	// ½Å°æ¸Á ÇĞ½À
+	// ì‹ ê²½ë§ í•™ìŠµ
 	public static void calcNet() {
 		// calculate the outputs of the hidden neurons
 		// the hidden neurons are tanh
-		// È÷µçÃşÀÇ Ãâ·Â °è»ê. È°¼ºÈ­ÇÔ¼ö´Â tanh
+		// íˆë“ ì¸µì˜ ì¶œë ¥ ê³„ì‚°. í™œì„±í™”í•¨ìˆ˜ëŠ” tanh
 		for (int i = 0; i < numHidden; i++) {
 			hiddenVal[i] = 0.0;
 
@@ -128,19 +134,43 @@ public class JavaMLP {
 
 		for (int i = 0; i < numHidden; i++)
 			outPred = outPred + hiddenVal[i] * weightsHO[i];
-
-		// ¿ÀÂ÷ °è»ê(calculate the error)
+		
+		
+		// ì˜¤ì°¨ ê³„ì‚°(calculate the error)
 		errThisPat = outPred - trainOutput[patNum];
 	}
+	
+	// test
+	public static void testNet() {
+		// calculate the outputs of the hidden neurons
+		// the hidden neurons are tanh
+		// íˆë“ ì¸µì˜ ì¶œë ¥ ê³„ì‚°. í™œì„±í™”í•¨ìˆ˜ëŠ” tanh
+		for (int i = 0; i < numHidden; i++) {
+			hiddenVal[i] = 0.0;
+			
+			for (int j = 0; j < numInputs; j++)
+				hiddenVal[i] = hiddenVal[i] + (testInputs[patNum][j] * weightsIH[j][i]);
 
-	// Hidden-Output °¡ÁßÄ¡ Á¶Á¤
+			hiddenVal[i] = tanh(hiddenVal[i]);
+		}
+
+		// calculate the output of the network
+		// the output neuron is linear
+		// 
+		outValid = 0.0;
+
+		for (int i = 0; i < numHidden; i++)
+			outValid = outValid + hiddenVal[i] * weightsHO[i];
+	}
+
+	// Hidden-Output ê°€ì¤‘ì¹˜ ì¡°ì •
 	public static void WeightChangesHO()	{
-		// Hidden-Output °¡ÁßÄ¡ Á¶Á¤(adjust the weights hidden-output)
+		// Hidden-Output ê°€ì¤‘ì¹˜ ì¡°ì •(adjust the weights hidden-output)
 		for (int k = 0; k < numHidden; k++) {
 			double weightChange = LR_HO * errThisPat * hiddenVal[k];
 			weightsHO[k] = weightsHO[k] - weightChange;
 
-			// Ãâ·ÂÃş¿¡¼­ÀÇ °¡ÁßÄ¡ Á¤±ÔÈ­(regularization on the output weights)
+			// ì¶œë ¥ì¸µì—ì„œì˜ ê°€ì¤‘ì¹˜ ì •ê·œí™”(regularization on the output weights)
 			if (weightsHO[k] < -5)
 				weightsHO[k] = -5;
 			else if (weightsHO[k] > 5)
@@ -148,9 +178,9 @@ public class JavaMLP {
 		}
 	}
 
-	// Input-Hidden °¡ÁßÄ¡ Á¶Á¤
+	// Input-Hidden ê°€ì¤‘ì¹˜ ì¡°ì •
 	public static void WeightChangesIH()	{
-		// Input-Hidden °¡ÁßÄ¡ Á¶Á¤(adjust the weights input-hidden)
+		// Input-Hidden ê°€ì¤‘ì¹˜ ì¡°ì •(adjust the weights input-hidden)
 		for (int i = 0; i < numHidden; i++) {
 			for (int k = 0; k < numInputs; k++) {
 				double x = 1 - (hiddenVal[i] * hiddenVal[i]);
@@ -162,7 +192,7 @@ public class JavaMLP {
 		}
 	}
 
-	//  °¡ÁßÄ¡ ÃÊ±âÈ­
+	//  ê°€ì¤‘ì¹˜ ì´ˆê¸°í™”
 	public static void initWeights() {
 
 		for (int j = 0; j < numHidden; j++) {
@@ -172,7 +202,7 @@ public class JavaMLP {
 		}
 	}
 
-	// µ¥ÀÌÅÍ ÀÔ·Â
+	// ë°ì´í„° ì…ë ¥
 	public static void initData() {
 
 		System.out.println("initializing data");
@@ -183,9 +213,9 @@ public class JavaMLP {
 		// an extra input valued 1 is also added
 		// to act as the bias
 
-		// ¿¹½Ã´Â XORÀÌ¹Ç·Î ´ÙÀ½°ú °°Àº µ¥ÀÌÅÍ¸¦ ÀÔ·ÂÇÔ
-		// ÀÔ·Â µ¥ÀÌÅÍ¿¡ bias °ªÀ¸·Î 1ÀÌ Ãß°¡µÊ
-		trainInputs[0][0] = 1;
+		// ì˜ˆì‹œëŠ” XORì´ë¯€ë¡œ ë‹¤ìŒê³¼ ê°™ì€ ë°ì´í„°ë¥¼ ì…ë ¥í•¨
+		// ì…ë ¥ ë°ì´í„°ì— bias ê°’ìœ¼ë¡œ 1ì´ ì¶”ê°€ë¨
+/*		trainInputs[0][0] = 1;
 		trainInputs[0][1] = -1;
 		trainInputs[0][2] = 1;// bias
 		trainOutput[0] = 1;
@@ -203,11 +233,95 @@ public class JavaMLP {
 		trainInputs[3][0] = -1;
 		trainInputs[3][1] = -1;
 		trainInputs[3][2] = 1;// bias
-		trainOutput[3] = -1;
+		trainOutput[3] = -1;*/
+		
+
+		trainInputs[0][0] = 0.1;
+		trainInputs[0][1] = 0.1;
+		trainInputs[0][2] = 1;// bias
+		trainOutput[0] = 0.2;
+
+		trainInputs[1][0] = 0.1;
+		trainInputs[1][1] = 0.2;
+		trainInputs[1][2] = 1;// bias
+		trainOutput[1] = 0.3;
+
+		trainInputs[2][0] = 0.1;
+		trainInputs[2][1] = 0.3;
+		trainInputs[2][2] = 1;// bias
+		trainOutput[2] = 0.4;
+
+		trainInputs[3][0] = 0.2;
+		trainInputs[3][1] = 0.1;
+		trainInputs[3][2] = 1;// bias
+		trainOutput[3] = 0.3;
+
+		trainInputs[4][0] = 0.2;
+		trainInputs[4][1] = 0.2;
+		trainInputs[4][2] = 1;// bias
+		trainOutput[4] = 0.4;
+
+		trainInputs[5][0] = 0.2;
+		trainInputs[5][1] = 0.3;
+		trainInputs[5][2] = 1;// bias
+		trainOutput[5] = 0.5;
+
+		trainInputs[6][0] = 0.3;
+		trainInputs[6][1] = 0.1;
+		trainInputs[6][2] = 1;// bias
+		trainOutput[6] = 0.4;
+
+		trainInputs[7][0] = 0.3;
+		trainInputs[7][1] = 0.2;
+		trainInputs[7][2] = 1;// bias
+		trainOutput[7] = 0.5;
+
+		trainInputs[8][0] = 0.3;
+		trainInputs[8][1] = 0.3;
+		trainInputs[8][2] = 1;// bias
+		trainOutput[8] = 0.6;
+		
+		/* test data */
+		testInputs[0][0] = 0.15;
+		testInputs[0][1] = 0.35;
+		testInputs[0][2] = 1;// bias
+		
+		testInputs[1][0] = 0.15;
+		testInputs[1][1] = 0.12;
+		testInputs[1][2] = 1;// bias
+		
+		testInputs[2][0] = 0.14;
+		testInputs[2][1] = 0.2;
+		testInputs[2][2] = 1;// bias
+		
+		testInputs[3][0] = 0.22;
+		testInputs[3][1] = 0.05;
+		testInputs[3][2] = 1;// bias
+		
+		testInputs[4][0] = 0.1;
+		testInputs[4][1] = 0.13;
+		testInputs[4][2] = 1;// bias
+		
+		testInputs[5][0] = 0.17;
+		testInputs[5][1] = 0.15;
+		testInputs[5][2] = 1;// bias
+		
+		testInputs[6][0] = 0.16;
+		testInputs[6][1] = 0.09;
+		testInputs[6][2] = 1;// bias
+		
+		testInputs[7][0] = 0.24;
+		testInputs[7][1] = 0.32;
+		testInputs[7][2] = 1;// bias
+
+		testInputs[8][0] = 0.3;
+		testInputs[8][1] = 0.26;
+		testInputs[8][2] = 1;// bias
+		
 
 	}
 
-	// È°¼ºÈ­ ÇÔ¼ö Tanh
+	// í™œì„±í™” í•¨ìˆ˜ Tanh
 	public static double tanh(double x) {
 		if (x > 20)
 			return 1;
@@ -220,22 +334,29 @@ public class JavaMLP {
 		}
 	}
 	
-	// È°¼ºÈ­ ÇÔ¼ö Sigmoid
+	// í™œì„±í™” í•¨ìˆ˜ Sigmoid
 	public static double sig(double x){
 		return 1/(1+Math.exp(-x));
 	}
 
-	//  °á°ú Ãâ·Â
+	//  ê²°ê³¼ ì¶œë ¥
 	public static void displayResults() {
+		System.out.println("Self Test");
 		for (int i = 0; i < numPatterns; i++) {
 			patNum = i;
 			calcNet();
 			System.out.println("pat = " + (patNum + 1) + " actual = " + trainOutput[patNum]
 					+ " neural model = " + outPred);
 		}
+		System.out.println("Validation");
+		for (int i = 0; i < numPatterns; i++) {
+			patNum = i;
+			testNet();
+			System.out.println("input = " + testInputs[i][0] +", "+ testInputs[i][1] + "  neural model = " + outValid);
+		}
 	}
 
-	// ÀüÃ¼ ¿ÀÂ÷ °è»ê
+	// ì „ì²´ ì˜¤ì°¨ ê³„ì‚°
 	public static void calcOverallError() {
 		RMSerror = 0.0;
 		for (int i = 0; i < numPatterns; i++) {
